@@ -13,13 +13,13 @@ def get_data(filters=None):
 	item_filter = filters.get("item")
 	limit_filter = filters.get("limit")
 	
+	filters_dict = {"docstatus": 1}
+
 	if item_filter:
-		item_filter = {"item": item_filter}
-	else:
-		item_filter = {}
+		filters_dict.update({"item": item_filter})
 
 	boms = frappe.db.get_list("BOM", 
-				filters= item_filter, 
+				filters= filters_dict, 
 				fields=["name", "sample_details", "item",
 						"image", "item_name", "retail_sku",
 						"raw_material_cost", "operating_cost"], 
@@ -27,8 +27,8 @@ def get_data(filters=None):
 			)
 
 	result = []
-	consumables = []
-	non_consumables = []
+	non_raw_materials = []
+	raw_materials = []
 
 	for bom in boms:
 		operating_cost = bom.operating_cost if bom.operating_cost else 0
@@ -45,12 +45,12 @@ def get_data(filters=None):
 											}
 										)
 
-		results, consumables, non_consumables = get_row(bom, bom_items, consumables, non_consumables)
+		results, non_raw_materials, raw_materials = get_row(bom, bom_items, non_raw_materials, raw_materials)
 		result.extend(results)
 
 	return result
 
-def get_row(bom, bom_items, consumables, non_consumables):
+def get_row(bom, bom_items, non_raw_materials, raw_materials):
 	operating_cost = bom.operating_cost if bom.operating_cost else 0
 	raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
 
@@ -90,15 +90,15 @@ def get_row(bom, bom_items, consumables, non_consumables):
 			pcs_to_make.append(0)
 			pcs_to_make_future.append(0)
 		
-		if bom_item.item_code in consumables:
+		if bom_item.item_code in non_raw_materials:
 			continue
-		elif bom_item.item_code not in non_consumables:
+		elif bom_item.item_code not in raw_materials:
 			item_group = frappe.db.get_value("Item", bom_item.item_code, "item_group")
-			if item_group == "Consumable":
-				consumables.append(bom_item.item_code)
+			if item_group != "Raw Material To Stock":
+				non_raw_materials.append(bom_item.item_code)
 				continue
 
-		non_consumables.append(bom_item.item_code)
+		raw_materials.append(bom_item.item_code)
 
 		row.update({
 			"bom_item": bom_item.item_name,
@@ -114,13 +114,13 @@ def get_row(bom, bom_items, consumables, non_consumables):
 		row = {}
 
 	# get the minimum value from the list of pcs to make
-	if pcs_to_make:
+	if pcs_to_make and rows_list:
 		rows_list[0]["qty_we_can_make_now"] = min(pcs_to_make)
 	
-	if pcs_to_make_future:
+	if pcs_to_make_future and rows_list:
 		rows_list[0]["qty_we_can_make_future"] = min(pcs_to_make_future)
 	
-	return rows_list, consumables, non_consumables
+	return rows_list, non_raw_materials, raw_materials
 
 def get_qty_on_order(item):
 	qty = 0
