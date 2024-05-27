@@ -1,3 +1,15 @@
+frappe.ui.form.on("BOM", {
+  refresh: function(frm){
+    frm.set_query('item_code', "items", () => {
+      return {
+          filters: {
+              item_group: 'Raw Material To Stock'
+          }
+      }
+  })
+  }
+})
+
 frappe.ui.form.on("BOM Operation", {
   time_in_mins: function (frm, cdt, cdn) {
     calculate_total_time(frm);
