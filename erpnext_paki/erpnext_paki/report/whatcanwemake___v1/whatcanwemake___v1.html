@@ -1,17 +1,10 @@
-<h2 class="text-center">{%= __("What We Can Make - Report V1") %}</h2>
-
-<h6 class="text-center">
-	{% if (filters.item) { %}
-	{%= __("Item: ")%}	{%= filters.item %}
-	{% } %}
-</h6>
-
-{% var colspans = [] %}
+{% var rowspans = [] %}
 {% var rows = 0 %}
 
+<!-- get the rows with rowspan -->
 {% for (var i = 0; i < data.length; i++) { %}
     {% if (data[i].item && i != 0) { %}
-        {% colspans.push(rows) %}
+        {% rowspans.push(rows) %}
         {% rows = 1 %}
 
     {% } else { %}
@@ -20,79 +13,95 @@
 {% } %}
 
 {% if (rows > 1) { %}
-    {% colspans.push(rows) %}
+    {% rowspans.push(rows) %}
 {% } %}
 
-{%= colspans %}
-<hr>
-    <table class="table table-bordered" style="word-break: break-word;">
-        <thead>
-            <tr>
-                <th>{%= __("ERPSKU") %}</th>
-                <th>{%= __("RetailSKU") %}</th>
-                <th>{%= __("Image") %}</th>
-                <th>{%= __("Item Name") %}</th>
-                <th style="width: 150px">{%= __("BOMItem") %}</th>
-                <th style="width: 60px">{%= __("BOMQtyToMake") %}</th>
-                <th>{%= __("BOMUOM") %}</th>
-                <th style="width: 60px">{%= __("QOH") %}</th>
-                <th style="width: 60px">{%= __("ItemCost") %}</th>
-                <th style="width: 60px">{%= __("BOMCost") %}</th>
-                <th style="width: 60px">{%= __("OPCost") %}</th>
-                <th style="width: 60px">{%= __("TTLCost") %}</th>
-                <th style="width: 60px">{%= __("QtyOnOrder") %}</th>
-                <th style="width: 60px">{%= __("QtyWeCanMakeNow") %}</th>
-                <th style="width: 60px">{%= __("QtyWeCanMakeFuture") %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for(var i=0, l=data.length; i<l; i++) { %}
-                <tr>
-                    {% if (data[i].item) { %}
-                        <td rowspan="{{ colspans[0] }}">
-                            {%= data[i].item %}
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].retail_sku %}
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                            <img src="{%= data[i].image %}" style="width: 60px; height: 60px;">
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].item_name %}
-                        </td>
-                    {% } %}
-                    <td>{%= data[i].bom_item %}</td>
-                    <td>{%= data[i].qty_to_make %}</td>
-                    <td>{%= data[i].uom %}</td>
-                    <td>{%= data[i].qoh %}</td>
-                    <td>{%= data[i].item_cost %}</td>
-                    {% if (data[i].item) { %}
+{% for(var i=0, l=data.length; i < l; i++) { %}
+    {% if (data[i].item) { %}
+        {% if (i!=0) { %}
+            </tbody>
+            </table>
+            <p class="text-right text-muted">Printed On {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>
+            <div style="page-break-after:always"></div>
+        {% } %}
+        <h2 class="text-center" >{%= __("What We Can Make - Report V1") %}</h2>
 
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].raw_material_cost %}
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].operating_cost %}
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                        {%= data[i].total_cost %}
-                    </td>
-                    {% } %}
-
-                    <td>{%= data[i].qty_on_order %}</td>
-                    
-                    {% if (data[i].item) { %}
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].qty_we_can_make_now %}
-                        </td>
-                        <td rowspan="{{ colspans[0] }}" >
-                            {%= data[i].qty_we_can_make_future %}
-                        </td>
-                        {% colspans.shift() %}
-                    {% } %}
-                </tr>
+        <h6 class="text-center">
+            {% if (filters.item) { %}
+            {%= __("Item: ")%}	{%= filters.item %}
             {% } %}
-        </tbody>
-    </table>
+        </h6>
+        <hr>
+        <table class="table table-bordered" style="word-break: break-word;">
+            <thead>
+                <tr>
+                    <th>{%= __("ERPSKU") %}</th>
+                    <th>{%= __("RetailSKU") %}</th>
+                    <th>{%= __("Image") %}</th>
+                    <th>{%= __("Item Name") %}</th>
+                    <th style="width: 150px">{%= __("BOMItem") %}</th>
+                    <th style="width: 60px">{%= __("BOMQtyToMake") %}</th>
+                    <th>{%= __("BOMUOM") %}</th>
+                    <th style="width: 60px">{%= __("QOH") %}</th>
+                    <th style="width: 60px">{%= __("ItemCost") %}</th>
+                    <th style="width: 60px">{%= __("BOMCost") %}</th>
+                    <th style="width: 60px">{%= __("OPCost") %}</th>
+                    <th style="width: 60px">{%= __("TTLCost") %}</th>
+                    <th style="width: 60px">{%= __("QtyOnOrder") %}</th>
+                    <th style="width: 60px">{%= __("QtyWeCanMakeNow") %}</th>
+                    <th style="width: 60px">{%= __("QtyWeCanMakeFuture") %}</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% } %}
+    <tr>
+        {% if (data[i].item) { %}
+            <td rowspan="{{ rowspans[0] }}">
+                {%= data[i].item %}
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].retail_sku %}
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+                <img src="{%= data[i].image %}" style="width: 60px; height: 60px;">
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].item_name %}
+            </td>
+        {% } %}
+        <td>{%= data[i].bom_item %}</td>
+        <td>{%= data[i].qty_to_make %}</td>
+        <td>{%= data[i].uom %}</td>
+        <td>{%= data[i].qoh %}</td>
+        <td>{%= data[i].item_cost %}</td>
+        {% if (data[i].item) { %}
+
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].raw_material_cost %}
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].operating_cost %}
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+            {%= data[i].total_cost %}
+        </td>
+        {% } %}
+
+        <td>{%= data[i].qty_on_order %}</td>
+        
+        {% if (data[i].item) { %}
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].qty_we_can_make_now %}
+            </td>
+            <td rowspan="{{ rowspans[0] }}" >
+                {%= data[i].qty_we_can_make_future %}
+            </td>
+            {% rowspans.shift() %}
+        {% } %}
+    </tr>
+{% } %}
+
+</tbody>
+</table>
+
 <p class="text-right text-muted">Printed On {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>
