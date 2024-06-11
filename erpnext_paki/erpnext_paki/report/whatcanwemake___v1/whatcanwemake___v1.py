@@ -16,7 +16,7 @@ def get_data(filters=None):
 	filters_dict = {"docstatus": 1}
 
 	if item_filter:
-		filters_dict.update({"item": item_filter})
+		filters_dict.update({"item": ["in", item_filter]})
 
 	boms = frappe.db.get_list("BOM", 
 				filters= filters_dict, 
@@ -101,7 +101,7 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 		raw_materials.append(bom_item.item_code)
 
 		row.update({
-			"bom_item": bom_item.item_name,
+			"bom_item": bom_item.item_code,
 			"item_description": bom_item.description,
 			"qty_to_make": bom_item.qty,
 			"uom": bom_item.uom,
