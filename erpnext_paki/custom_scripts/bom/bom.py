@@ -29,7 +29,7 @@ def update_sub_operations(doc):
 def get_item_group_with_children(*args, **kwargs):
     parent = kwargs.get("parent", "Raw Material To Stock")
     item_groups = frappe.db.sql("""
-        SELECT ig.name
+        SELECT ig.name 
             from 
                 `tabItem Group` ig
             where
