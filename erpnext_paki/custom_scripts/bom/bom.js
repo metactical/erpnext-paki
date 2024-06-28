@@ -1,9 +1,21 @@
+var raw_material_item_groups = []
 frappe.ui.form.on("BOM", {
+  setup: function () {
+    frappe.call({
+      method: "erpnext_paki.custom_scripts.bom.bom.get_item_group_with_children",
+      args: {
+        parent: "Raw Material To Stock"
+      },
+      callback: function (r) {
+        raw_material_item_groups = r.message
+      },
+    });
+  },
   refresh: function(frm){
     frm.set_query('item_code', "items", () => {
       return {
           filters: {
-              item_group: 'Raw Material To Stock'
+              item_group: ["in", raw_material_item_groups]
           }
       }
   })
