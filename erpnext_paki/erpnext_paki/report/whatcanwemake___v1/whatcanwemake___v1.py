@@ -3,6 +3,7 @@
 
 import frappe, json
 from frappe import _
+from erpnext_paki.custom_scripts.bom.bom import get_item_group_with_children
 
 
 def execute(filters=None):
@@ -51,6 +52,7 @@ def get_data(filters=None):
 	return result
 
 def get_row(bom, bom_items, non_raw_materials, raw_materials):
+	raw_material_item_groups = get_item_group_with_children({"parent", "Raw Material To Stock"})
 	operating_cost = bom.operating_cost if bom.operating_cost else 0
 	raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
 
@@ -94,7 +96,7 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 			continue
 		elif bom_item.item_code not in raw_materials:
 			item_group = frappe.db.get_value("Item", bom_item.item_code, "item_group")
-			if item_group != "Raw Material To Stock":
+			if item_group not in raw_material_item_groups:
 				non_raw_materials.append(bom_item.item_code)
 				continue
 
