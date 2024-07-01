@@ -14,7 +14,7 @@ def get_data(filters=None):
 	item_filter = filters.get("item")
 	limit_filter = filters.get("limit")
 	
-	filters_dict = {"docstatus": 1}
+	filters_dict = {"docstatus": 1, "is_active": 1}
 
 	if item_filter:
 		filters_dict.update({"item": ["in", item_filter]})
