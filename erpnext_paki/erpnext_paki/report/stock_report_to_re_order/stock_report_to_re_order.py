@@ -242,7 +242,7 @@ def get_minimum_cost(item, supplier=None):
 		suppliers = frappe.get_all("Item Supplier", filters={"parent": item, "parenttype": "Item"}, fields=["supplier"])
 		supplier_list = [supplier.get("supplier") for supplier in suppliers]
 	else:
-		supplier_list = [supplier.supplier] if supplier.supplier else []
+		supplier_list = [supplier] if supplier else []
 
 	if not supplier_list:
 		return min_rate
