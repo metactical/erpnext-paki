@@ -14,8 +14,12 @@ def execute(filters=None):
 	return columns, data
 
 def get_data(filters):
-	item_groups = get_item_group_with_children({"parent", "Raw Material To Stock"})
+	item_groups = get_item_group_with_children({"parent": "Raw Material To Stock"})
+	item_groups += get_item_group_with_children({"parent": "Factory BOM"})
 	item_groups = tuple(item_groups)
+
+	if not len(item_groups):
+		return []
 
 	conditions = ""
 	if filters.get("supplier"):
@@ -34,12 +38,19 @@ def get_data(filters):
 	items = frappe.db.sql(f"""
 		SELECT
 			item_code, stock_uom, item_group, min_order_qty,
-			item_name, description, image, supplier, supplier_part_no
+			item_name, description, `tabItem`.image, supplier, supplier_part_no,
+			supplier_group
 		FROM
 			`tabItem`
 		Left JOIN
 			`tabItem Supplier` ON `tabItem Supplier`.parent = `tabItem`.name
-		WHERE item_group in {item_groups} AND has_variants=0 {conditions} 
+		LEFT JOIN
+			`tabSupplier` ON `tabSupplier`.name = `tabItem Supplier`.supplier
+		WHERE 
+			item_group in {item_groups} AND 
+			has_variants=0 AND
+			supplier_group="Raw Material"
+			{conditions} 
 	""", as_dict=1)
 
 	for row in items:
