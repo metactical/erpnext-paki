@@ -52,7 +52,7 @@ def get_data(filters=None):
 	return result
 
 def get_row(bom, bom_items, non_raw_materials, raw_materials):
-	raw_material_item_groups = get_item_group_with_children({"parent", "Raw Material To Stock"})
+	raw_material_item_groups = get_item_group_with_children({"parent": "Raw Material To Stock"})
 	operating_cost = bom.operating_cost if bom.operating_cost else 0
 	raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
 

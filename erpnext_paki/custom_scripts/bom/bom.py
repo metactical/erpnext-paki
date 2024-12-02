@@ -1,7 +1,7 @@
 import frappe
 
 @frappe.whitelist()
-def get_item_group_with_children(*args, **kwargs):
+def get_item_group_with_children(kwargs):
     parent = kwargs.get("parent", "Raw Material To Stock")
     item_groups = frappe.db.sql("""
         SELECT ig.name 
