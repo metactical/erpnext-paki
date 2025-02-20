@@ -1,7 +1,7 @@
 # Copyright (c) 2024, Metactical and contributors
 # For license information, please see license.txt
 
-import frappe, json
+import frappe
 from frappe import _
 from erpnext_paki.custom_scripts.bom.bom import get_item_group_with_children
 
@@ -32,9 +32,6 @@ def get_data(filters=None):
 	raw_materials = []
 
 	for bom in boms:
-		operating_cost = bom.operating_cost if bom.operating_cost else 0
-		raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
-
 		bom_items = frappe.db.get_list("BOM Item", 
 											fields={
 												"item_name", "item_code", "description", "qty", "uom", "amount",
@@ -62,12 +59,8 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 	operating_cost = bom.operating_cost if bom.operating_cost else 0
 	raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
 
-	total_cost = operating_cost + raw_material_cost
-
 	qty_we_can_make_now = 0
 	qty_we_can_make_future = 0
-
-	rows_list = []
 
 	row = {
 			"item": bom.item,
@@ -97,38 +90,12 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 		else:
 			pcs_to_make.append(0)
 			pcs_to_make_future.append(0)
-		
-		if bom_item.item_code in non_raw_materials:
-			continue
-		elif bom_item.item_code not in raw_materials:
-			item_group = frappe.db.get_value("Item", bom_item.item_code, "item_group")
-			if item_group not in raw_material_item_groups:
-				non_raw_materials.append(bom_item.item_code)
-				continue
-
-		raw_materials.append(bom_item.item_code)
-
-		row.update({
-			"bom_item": bom_item.item_code,
-			"item_description": bom_item.description,
-			"qty_to_make": bom_item.qty,
-			"uom": bom_item.uom,
-			"qoh": qty,
-			"item_cost": bom_item.amount,
-			"qty_on_order": qty_on_order,
-		})
-
-		rows_list.append(row)
-		row = {}
 
 	# get the minimum value from the list of pcs to make
-	if pcs_to_make and rows_list:
-		rows_list[0]["qty_we_can_make_now"] = min(pcs_to_make)
+	if pcs_to_make and row:
+		row["qty_we_can_make_now"] = min(pcs_to_make)
 	
-	if pcs_to_make_future and rows_list:
-		rows_list[0]["qty_we_can_make_future"] = min(pcs_to_make_future)
-	
-	return rows_list, non_raw_materials, raw_materials
+	return [row], non_raw_materials, raw_materials
 
 def get_qty_on_order(item):
 	qty = 0
@@ -155,99 +122,20 @@ def get_qty(item):
 def get_columns():
 	return [
 		{
-			"label": _("ERPSKU"),
-			"fieldname": "item",
-			"fieldtype": "Link",
-			"options": "Item",
-			"width": 150,
-		},
-		{
-			"label": "RetailSKU",
-			"fieldname": "retail_sku",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "Image",
-			"fieldname": "image",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
 			"label": "Item Name",
 			"fieldname": "item_name",
 			"fieldtype": "Data",
-			"width": 150,
+			"width": 200,
 		},
 		{
-			"label": "BOMItem",
-			"fieldname": "bom_item",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "Item Description",
-			"fieldname": "item_description",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "BOMQtyToMake",
-			"fieldname": "qty_to_make",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "BOMUOM",
-			"fieldname": "uom",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "QOH",
-			"fieldname": "qoh",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "ItemCost",
-			"fieldname": "item_cost",
-			"fieldtype": "Currency",
-			"width": 150,
-		},
-		{
-			"label": "BOMCost",
-			"fieldname": "raw_material_cost",
-			"fieldtype": "Data",
-			"width": 150,
-		},
-		{
-			"label": "OPCost",
-			"fieldname": "operating_cost",
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"label": "TTLCost",
+			"label": "TotalCost (OperatingCost + RawMaterialCost)",
 			"fieldname": "total_cost",
-			"fieldtype": "Data",
-			"width": 150,
+			"fieldtype": "Currency",
+			"width": 200,
 		},
 		{
-			"label": "QtyOnOrder",
-			"fieldname": "qty_on_order",
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"label": "QtyWeCanMakeNow",
+			"label": "QtyWeCanMake",
 			"fieldname": "qty_we_can_make_now",
-			"fieldtype": "Data",
-			"width": 150
-		},
-		{
-			"label": "QtyWeCanMakeFuture",
-			"fieldname": "qty_we_can_make_future",
 			"fieldtype": "Data",
 			"width": 150
 		}
