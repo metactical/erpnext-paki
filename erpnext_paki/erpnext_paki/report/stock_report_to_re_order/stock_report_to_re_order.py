@@ -14,10 +14,15 @@ def execute(filters=None):
 	return columns, data
 
 def get_data(filters):
-	item_groups = get_item_group_with_children({"parent": "Raw Material To Stock"})
-	item_groups += get_item_group_with_children({"parent": "Factory BOM"})
+	paki_settings = frappe.get_doc("Paki Settings")
+	item_groups_stock_reorder = [ig.item_group for ig in paki_settings.item_groups_stock_reorder]
+ 
+	item_groups = []
+	for item_group in item_groups_stock_reorder:
+		item_groups += get_item_group_with_children({"parent": item_group})
+  
 	item_groups = tuple(item_groups)
-
+ 
 	if not len(item_groups):
 		return []
 
@@ -34,7 +39,7 @@ def get_data(filters):
 
 	if filters.get("limit") and filters.get("limit") != "ALL":
 		conditions += f" limit {filters.get('limit')}"
-
+  
 	items = frappe.db.sql(f"""
 		SELECT
 			item_code, stock_uom, item_group, min_order_qty,
