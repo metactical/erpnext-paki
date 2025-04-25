@@ -124,8 +124,15 @@ def get_columns():
 		{
 			"label": "Item Name",
 			"fieldname": "item_name",
-			"fieldtype": "Data",
+			"fieldtype": "Link",
+			"options": "Item",
 			"width": 200,
+		},
+		{
+			"label": "Retail SKU",
+			"fieldname": "retail_sku",
+			"fieldtype": "Data",
+			"width": 150,
 		},
 		{
 			"label": "TotalCost (OperatingCost + RawMaterialCost)",
