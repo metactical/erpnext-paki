@@ -32,19 +32,11 @@ def get_data(filters=None):
 	raw_materials = []
 
 	for bom in boms:
-		operating_cost = bom.operating_cost if bom.operating_cost else 0
-		raw_material_cost = bom.raw_material_cost if bom.raw_material_cost else 0
-
-		bom_items = frappe.db.get_list("BOM Item", 
-											fields={
-												"item_name", "item_code", "description", "qty", "uom", "amount",
-											},
-											filters={
-												"parent": bom.name,
-												"parenttype": "BOM",
-												"parentfield": "items"
-											}
-										)
+		bom_items = frappe.db.sql("""select 
+                            		bi.item_name, bi.item_code, bi.description, bi.qty, bi.uom, bi.amount, item_group
+                              		from `tabBOM Item` bi
+									Join `tabItem` on `tabItem`.name = bi.item_code
+                                	where bi.parent = %s""", (bom.name), as_dict=1)
 
 		results, non_raw_materials, raw_materials = get_row(bom, bom_items, non_raw_materials, raw_materials)
 		result.extend(results)
@@ -87,16 +79,17 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 		qty = get_qty(bom_item.item_code) or 0
 		qty_on_order = get_qty_on_order(bom_item.item_code) or 0
 
-		if qty > 0:
-			qty_we_can_make_now = qty // bom_item.qty
-			qty_we_can_make_future = (qty + qty_on_order) // bom_item.qty
-			
-			pcs_to_make.append(qty_we_can_make_now)
-			pcs_to_make_future.append(qty_we_can_make_future)
-			
-		else:
-			pcs_to_make.append(0)
-			pcs_to_make_future.append(0)
+		if bom_item.item_group in raw_material_item_groups:
+			if qty > 0:
+				qty_we_can_make_now = qty // bom_item.qty
+				qty_we_can_make_future = (qty + qty_on_order) // bom_item.qty
+				
+				pcs_to_make.append(qty_we_can_make_now)
+				pcs_to_make_future.append(qty_we_can_make_future)
+				
+			else:
+				pcs_to_make.append(0)
+				pcs_to_make_future.append(0)
 		
 		if bom_item.item_code in non_raw_materials:
 			continue
