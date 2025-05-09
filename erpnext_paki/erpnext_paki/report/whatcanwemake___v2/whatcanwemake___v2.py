@@ -90,6 +90,9 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 	# get the minimum value from the list of pcs to make
 	if pcs_to_make and row:
 		row["qty_we_can_make_now"] = min(pcs_to_make)
+  
+	if pcs_to_make_future and row:
+		row["qty_we_can_make_future"] = min(pcs_to_make_future)
 	
 	return [row], non_raw_materials, raw_materials
 
@@ -118,6 +121,13 @@ def get_qty(item):
 def get_columns():
 	return [
 		{
+			"label": "Item Code",
+			"fieldname": "item",
+			"fieldtype": "Link",
+			"options": "Item",
+			"width": 150
+		},
+		{
 			"label": "Item Name",
 			"fieldname": "item_name",
 			"fieldtype": "Link",
@@ -139,6 +149,12 @@ def get_columns():
 		{
 			"label": "QtyWeCanMake",
 			"fieldname": "qty_we_can_make_now",
+			"fieldtype": "Data",
+			"width": 150
+		},
+		{
+			"label": "QtyWeCanMakeFuture",
+			"fieldname": "qty_we_can_make_future",
 			"fieldtype": "Data",
 			"width": 150
 		}
