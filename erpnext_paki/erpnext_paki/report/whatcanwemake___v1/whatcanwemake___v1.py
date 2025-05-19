@@ -25,6 +25,7 @@ def get_data(filters=None):
 						"image", "item_name", "retail_sku",
 						"raw_material_cost", "operating_cost"], 
 				page_length=limit_filter or 10,
+				order_by="retail_sku asc"
 			)
 
 	result = []
@@ -80,10 +81,9 @@ def get_row(bom, bom_items, non_raw_materials, raw_materials):
 		qty_on_order = get_qty_on_order(bom_item.item_code) or 0
 
 		if bom_item.item_group in raw_material_item_groups:
-			if qty > 0:
+			if qty > 0 or qty_on_order > 0:
 				qty_we_can_make_now = qty // bom_item.qty
 				qty_we_can_make_future = (qty + qty_on_order) // bom_item.qty
-				
 				pcs_to_make.append(qty_we_can_make_now)
 				pcs_to_make_future.append(qty_we_can_make_future)
 				
